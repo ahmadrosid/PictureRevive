@@ -2,81 +2,109 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\ReplicateService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
+    protected ReplicateService $replicateService;
+ 
+    /**
+     * HomeController constructor.
+     *
+     * @param ReplicateService $replicateService
+     */
+    public function __construct(ReplicateService $replicateService)
+    {
+        $this->replicateService = $replicateService;
+    }
+
+    /**
+     * Display the UI client for user uploading the photos.
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function index()
     {
         return view("welcome");
     }
-
+ 
+    /**
+     * Upload a photo to Replicate API.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'photo' => 'required|image',
         ]);
-
+    
         if ($validator->fails()) {
             return response([
                 "error" => true,
                 "errors" => $validator->errors(),
             ], 400);
         }
-
+    
         $photo = $request->file('photo');
         $name = Str::random(40) . "." . $photo->getClientOriginalExtension();
         $originalPath = Storage::putFileAs('public/photos', $photo, $name);
-        $image = $this->getBase64Image($originalPath);
-
-        $response = Http::withHeaders([
-            'Authorization' => 'Token ' . config('app.replicate.api_token')
-        ])
-        ->timeout(60)
-        ->post('https://api.replicate.com/v1/predictions', [
-            'version' => '7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db53142edd9d2cd56',
-            'input' => [
-                "image" => $image,
-            ],
-        ]);
-
+        $image = $this->replicateService->imageToBase64($originalPath);
+    
+        try {
+            $response = $this->replicateService->predict($image);
+        } catch (\Exception $e) {
+            return response([
+                "error" => true,
+                "message" => $e->getMessage()
+            ], 500);
+        }
+    
         if ($response->getStatusCode() != 201) {
-            return [
+            return response([
                 "error" => true,
                 "message" => "Failed!"
-            ];
+            ], 400);
         }
-
-        $resp = json_decode($response);
+    
+        $resp = $response->json();
         return [
-            'original' => asset("/storage/photos/" . $name),
+            'original' => asset('/storage/photos/' . $name),
             'result' => [
-                "id" => $resp->id
+                "id" => $resp['id']
             ]
         ];
     }
 
+    /**
+     * Get the status of the AI prediction for a specific image.
+     *
+     * @param string $id - The ID of the image prediction
+     * @return \Illuminate\Http\Response
+     */
     public function status($id)
     {
-        $response = Http::withHeaders([
-                'Authorization' => 'Token ' . config('app.replicate.api_token')
-            ])
-            ->acceptJson()
-            ->timeout(60)
-            ->get("https://api.replicate.com/v1/predictions/{$id}");
-
-        $resp = json_decode($response);
-        return $resp;
-    }
-
-    private function getBase64Image($path) {
-        $image = Storage::get($path);
-        $mimeType = Storage::mimeType($path);
-        $base64 = base64_encode($image);
-        return "data:" . $mimeType . ";base64," . $base64;
+        try {
+            $response = $this->replicateService->getPrediction($id);
+        } catch (\Exception $e) {
+            return response([
+                "error" => true,
+                "message" => $e->getMessage()
+            ], 500);
+        }
+    
+        if ($response->getStatusCode() != 200) {
+            return response([
+                "error" => true,
+                "message" => "Failed!"
+            ], 400);
+        }
+    
+        return $response->json();
     }
 }

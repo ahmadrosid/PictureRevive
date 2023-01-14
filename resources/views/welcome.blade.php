@@ -72,6 +72,7 @@
                 border-radius: .4rem;
                 cursor: pointer;
                 border-width: 1px;
+                display: none;
             }
 
             @media (prefers-reduced-motion: no-preference) {
@@ -188,33 +189,31 @@
         <script src="https://unpkg.com/axios@1.2.2/dist/axios.min.js"></script>
         <script src="https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js"></script>
         <script>
-            const file = document.getElementById('file');
-            const imgOriginal = document.getElementById('original');
-            const downloadBtn = document.getElementById('download-btn');
-            downloadBtn.style.display = 'none';
-            const uploadBtn = document.getElementById('upload-btn');
-            uploadBtn.style.display = 'none';
-            file.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                const options = {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
-                    useWebWorker: true
-                }
-                const loadingContainer = document.querySelector("#result-container")
-                loadingContainer.innerHTML = '<div class="cp-spinner mx-auto cp-round my-16"></div>';
+            const fileInput = document.getElementById('file');
+            const originalImage = document.getElementById('original');
+            const loadingContainer = document.querySelector("#result-container");
+
+            const options = {
+                maxSizeMB: 1,
+                maxWidthOrHeight: 1920,
+                useWebWorker: true
+            };
+
+            const handleFileChange = async (event) => {
                 try {
-                    const result = await imageCompression(file, options);
-                    imgOriginal.src = URL.createObjectURL(file)
+                    const file = event.target.files[0];
+                    loadingContainer.innerHTML = '<div class="cp-spinner mx-auto cp-round my-16"></div>';
+                    const compressedFile = await imageCompression(file, options);
+                    originalImage.src = URL.createObjectURL(file);
                     const formData = new FormData();
-                    formData.append('photo', result, result.name);
-                    const res = await axios.post('/', formData);
-                    await getStatus(res.data.result.id);
+                    formData.append('photo', compressedFile, compressedFile.name);
+                    const response = await axios.post('/', formData);
+                    await getStatus(response.data.result.id);
                 } catch (err) {
-                    console.log(err);
                     loadingContainer.innerHTML = `<p class="py-8 text-2xl text-red-500">${err.message}</p>`;
                 }
-            });
+            }
+            fileInput.addEventListener('change', handleFileChange);
 
             function displayResult(data) {
                 const imgResult = document.querySelector("#result");
@@ -223,16 +222,11 @@
                 loadingContainer.innerHTML = "";
 
                 const downloadBtn = document.getElementById('download-btn');
-                downloadBtn.style.display = 'block';
-                
                 const uploadBtn = document.getElementById('upload-btn');
+                downloadBtn.style.display = 'block';
                 uploadBtn.style.display = 'block';
 
-                downloadBtn.addEventListener("click", function () {
-                    const imgResult = document.querySelector("#result");
-                    saveAs(imgResult.src, "output.png");
-                });
-
+                downloadBtn.addEventListener("click", () => saveAs(document.querySelector("#result").src, "output.png"));
                 uploadBtn.addEventListener("click", () => {
                     imgResult.src = "";
                     downloadBtn.style.display = 'none';
