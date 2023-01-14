@@ -21,7 +21,6 @@
             input::-webkit-file-upload-button {
                 margin-top: 10px;
                 margin-bottom: 6px;
-                padding: 8px;
                 border: none;
                 padding: .8rem;
                 border-radius: .4rem;
@@ -90,14 +89,14 @@
                 padding-top:1.5rem;
             }
 
-            .cp-spinner {
+            .spinner {
                 width: 48px;
                 height: 48px;
                 display: inline-block;
                 box-sizing: border-box;
                 position: relative
             }
-            .cp-round:before {
+            .spinner-round:before {
                 border-radius: 50%;
                 content: " ";
                 width: 48px;
@@ -112,7 +111,7 @@
                 top: 0;
                 left: 0
             }
-            .cp-round:after {
+            .spinner-round:after {
                 border-radius: 50%;
                 content: " ";
                 width: 48px;
@@ -126,9 +125,9 @@
                 position: absolute;
                 top: 0;
                 left: 0;
-                animation: cp-round-animate 10s ease-in-out infinite
+                animation: spinner-round-animate 1s ease-in-out infinite
             }
-            @keyframes cp-round-animate {
+            @keyframes spinner-round-animate {
                 0% {
                     transform: rotate(0)
                 }
@@ -202,7 +201,7 @@
             const handleFileChange = async (event) => {
                 try {
                     const file = event.target.files[0];
-                    loadingContainer.innerHTML = '<div class="cp-spinner mx-auto cp-round my-16"></div>';
+                    loadingContainer.innerHTML = '<div class="spinner mx-auto spinner-round my-16"></div>';
                     const compressedFile = await imageCompression(file, options);
                     originalImage.src = URL.createObjectURL(file);
                     const formData = new FormData();
