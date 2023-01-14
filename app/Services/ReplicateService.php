@@ -14,6 +14,18 @@ use Illuminate\Support\Facades\Storage;
  */
 class ReplicateService
 {
+    private $headers;
+    private $modelVersion;
+    private $url;
+
+    public function __construct() {
+        $this->headers = [
+            'Authorization' => 'Token ' . config('app.replicate.api_token')
+        ];
+        $this->modelVersion = '7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db53142edd9d2cd56';
+        $this->url = 'https://api.replicate.com/v1/predictions';
+    }
+
     /**
      * Make a prediction using the image provided.
      *
@@ -22,19 +34,14 @@ class ReplicateService
      */
     public function predict($image)
     {
-        $modelVersion = '7de2ea26c616d5bf2245ad0d5e24f0ff9a6204578a5c876db53142edd9d2cd56';
-        $headers = [
-            'Authorization' => 'Token ' . config('app.replicate.api_token')
-        ];
-        $response = Http::withHeaders($headers)
-        ->timeout(60)
-        ->post('https://api.replicate.com/v1/predictions', [
-            'version' => $modelVersion,
-            'input' => [
-                "image" => $image,
-            ],
-        ]);
-        return $response;
+        return Http::withHeaders($this->headers)
+            ->timeout(60)
+            ->post($this->url, [
+                'version' => $this->modelVersion,
+                'input' => [
+                    "image" => $image,
+                ],
+            ]);
     }
 
     /**
@@ -45,13 +52,10 @@ class ReplicateService
      */
     public function getPrediction($id)
     {
-        $response = Http::withHeaders([
-            'Authorization' => 'Token ' . config('app.replicate.api_token')
-        ])
-        ->acceptJson()
-        ->timeout(60)
-        ->get("https://api.replicate.com/v1/predictions/{$id}");
-        return $response;
+        return Http::withHeaders($this->headers)
+            ->acceptJson()
+            ->timeout(60)
+            ->get("{$this->url}/{$id}");
     }
 
     /**
