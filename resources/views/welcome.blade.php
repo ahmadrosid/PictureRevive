@@ -18,21 +18,22 @@
             body {
                 font-family: 'Space Grotesk', sans-serif;
             }
-            input::-webkit-file-upload-button {
+            input::-webkit-file-upload-button, input::file-selector-button {
                 margin-top: 10px;
                 margin-bottom: 6px;
                 border: none;
-                padding: .8rem;
+                padding: .8rem 1.2rem;
                 border-radius: .4rem;
                 background-color: white;
                 --tw-shadow: 0 1px 3px 0 rgb(0 0 0 / .1), 0 1px 2px -1px rgb(0 0 0 / .1);
                 --tw-shadow-colored: 0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);
                 box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000),var(--tw-ring-shadow, 0 0 #0000),var(--tw-shadow);
                 cursor: pointer;
+                margin-right: 1rem;
             }
 
             @media (prefers-color-scheme: dark) {
-                input::-webkit-file-upload-button {
+                input::-webkit-file-upload-button, input::file-selector-button {
                     color: white;
                     background-color:rgb(31 41 55);
                 }
