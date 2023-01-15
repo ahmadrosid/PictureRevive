@@ -219,6 +219,7 @@
                 const imgResult = document.querySelector("#result");
                 const loadingContainer = document.querySelector("#result-container")
                 imgResult.src = data.result;
+                imgResult.style.display = 'block';
                 loadingContainer.innerHTML = "";
 
                 const downloadBtn = document.getElementById('download-btn');
@@ -228,11 +229,11 @@
 
                 downloadBtn.addEventListener("click", () => saveAs(document.querySelector("#result").src, "output.png"));
                 uploadBtn.addEventListener("click", () => {
-                    imgResult.src = "";
+                    imgResult.src = '';
+                    imgResult.style.display = 'none';
                     downloadBtn.style.display = 'none';
                     uploadBtn.style.display = 'none';
-                    const file = document.getElementById('file');
-                    file.click();
+                    fileInput.click();
                 });
             }
 
