@@ -202,6 +202,7 @@
             const handleFileChange = async (event) => {
                 try {
                     const file = event.target.files[0];
+                    if (!file) return;
                     loadingContainer.innerHTML = '<div class="spinner mx-auto spinner-round my-16"></div>';
                     const compressedFile = await imageCompression(file, options);
                     originalImage.src = URL.createObjectURL(file);
