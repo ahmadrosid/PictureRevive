@@ -227,7 +227,10 @@
                 downloadBtn.style.display = 'block';
                 uploadBtn.style.display = 'block';
 
-                downloadBtn.addEventListener("click", () => saveAs(document.querySelector("#result").src, "output.png"));
+                downloadBtn.addEventListener("click", () => saveAs(
+                    document.querySelector("#result").src, "output.png"
+                ));
+
                 uploadBtn.addEventListener("click", () => {
                     imgResult.src = '';
                     imgResult.style.display = 'none';
